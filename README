@@ -1,0 +1,6 @@
+Twitter app to provide temperature updates from the Bureau of Meteorology website.
+
+Requires Python 2.6+ and BeautifulSoup.
+
+Currently uses HTTP basic auth to submit Twitter updates.
+
