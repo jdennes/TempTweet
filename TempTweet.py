@@ -11,11 +11,14 @@ Options:
   --version             show program's version number and exit
   -h, --help            show this help message and exit
   -s STATION, --station=STATION
-                        The weather station to use (defaults to "Sydney - Observatory Hill")
+                        The weather station to use (defaults to "Sydney -
+                        Observatory Hill")
   -u USERNAME, --username=USERNAME
                         Twitter username
   -p PASSWORD, --password=PASSWORD
                         Twitter password
+  -o OPERATION, --operation=OPERATION
+                        Operation: high, low or all (defaults to "all")
 """
 
 import os
@@ -91,16 +94,16 @@ class TempTweeter:
     def tweet_most_recent_high(self):
         high = self.get_most_recent_high()
         if high != None:
-            self.tweet('Most recent high ({0}): {1}{2}C'
-                       .format(high.time, high.value, self.degree_symbol))
+            self.tweet('Most recent high: {0}{1}C ({2} @ {3}) {4}'
+                       .format(high.value, self.degree_symbol, high.time, self.weather_station, self.data_link))
         else:
             self.err("Couldn't retrieve most recent high temperature")
 
     def tweet_most_recent_low(self):
         low = self.get_most_recent_low()
         if low != None:
-            self.tweet('Most recent low ({0}): {1}{2}C'
-                       .format(low.time, low.value, self.degree_symbol))
+            self.tweet('Most recent low: {0}{1}C ({2} @ {3}) {4}'
+                       .format(low.value, self.degree_symbol, low.time, self.weather_station, self.data_link))
         else:
             print "Error: Couldn't retrieve most recent low temperature"
 
@@ -109,8 +112,8 @@ class TempTweeter:
         low = self.get_most_recent_low()
         current = self.get_current()
         if high != None and low != None and current != None:
-            self.tweet('Most recent high ({1}): {2}{0}C; Most recent low ({3}): {4}{0}C; Current ({5}): {6}{0}C {7}'
-                       .format(self.degree_symbol, high.time, high.value, low.time, low.value, current.time, current.value, self.data_link))
+            self.tweet('Most recent high ({1}): {2}{0}C; Most recent low ({3}): {4}{0}C; Current ({5}): {6}{0}C (@ {7}) {8}'
+                       .format(self.degree_symbol, high.time, high.value, low.time, low.value, current.time, current.value, self.weather_station, self.data_link))
         else:
             self.err("Couldn't retrieve most recent high, low and current temperatures")
 
@@ -130,16 +133,19 @@ class TempTweeter:
         print 'Error: {0}'.format(msg)
 
 def main():
-    weather_station, username, password = '', '', ''
+    weather_station, username, password, operation = '', '', '', ''
     parser = OptionParser(usage="usage: %prog [options]", version="%prog " + TEMP_TWEET_VERSION)
     parser.add_option("-s", "--station", action="store", dest="station", 
-                      default="Sydney - Observatory Hill", help="The weather station to use (defaults to \"Sydney - Observatory Hill\"")
+                      default="Sydney - Observatory Hill", help="The weather station to use (defaults to \"%default\")")
     parser.add_option("-u", "--username", action="store", dest="username", 
                       help="Twitter username")
     parser.add_option("-p", "--password", action="store", dest="password", 
                       help="Twitter password")
+    parser.add_option("-o", "--operation", action="store", dest="operation",
+                      default="all", help="Operation: high, low or all (defaults to \"%default\")")
     (opts, args) = parser.parse_args()
     weather_station = opts.station
+    operation = opts.operation
     if opts.username == None or opts.username.strip() == '':
         username = raw_input('Twitter username: ')
     else:
@@ -150,7 +156,12 @@ def main():
         opts.password
 
     t = TempTweeter(weather_station, username, password)
-    t.tweet_most_recent_high_low_current()
+    if operation == 'high':
+        t.tweet_most_recent_high()
+    elif operation == 'low':
+        t.tweet_most_recent_low()
+    else:
+        t.tweet_most_recent_high_low_current()
 
 if __name__ == '__main__':
     main()
